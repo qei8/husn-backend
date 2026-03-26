@@ -1,0 +1,231 @@
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Clock, 
+  CheckCircle2, 
+  ChevronLeft, 
+  ChevronRight,
+  AlertTriangle,
+  FileText,
+  Flag
+} from 'lucide-react';
+import { mockIncidents, mockAlerts } from '@/data/mockData';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext'; // استيراد نظام اللغة
+
+const IncidentDetail = () => {
+  const navigate = useNavigate();
+  const { t, language } = useLanguage(); // استخدام دالة الترجمة
+  const { id } = useParams();
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+
+  // البحث عن الحادث أو التنبيه
+  const incident = mockIncidents.find(i => i.id === id);
+  const alert = mockAlerts.find(a => a.id === id);
+  const data = incident || (alert ? {
+    id: alert.id,
+    alertId: alert.id,
+    status: alert.status,
+    startTime: alert.timestamp,
+    location: alert.location,
+    confidence: alert.confidence / 100,
+    severity: alert.severity === 'critical' ? 5 : alert.severity === 'high' ? 4 : alert.severity === 'medium' ? 3 : 2,
+    description: alert.description || 'Fire detection alert',
+    media: alert.thumbnail ? [alert.thumbnail] : [],
+    createdBy: 'AI',
+  } : null);
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-xl font-bold mb-2">{language === 'ar' ? 'الحادث غير موجود' : 'Incident not found'}</h1>
+          <Button onClick={() => navigate('/incidents')}>{t('cancel')}</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleResolve = () => {
+    toast.success(language === 'ar' ? 'تم تحديد الحادث كمحلول' : 'Incident marked as resolved');
+  };
+
+  const isRTL = language === 'ar';
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="h-14 border-b border-border bg-card/50 backdrop-blur-sm px-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-4">
+          <Button size="icon" variant="ghost" onClick={() => navigate('/incidents')}>
+            <ArrowLeft className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
+          </Button>
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            <span className="font-mono font-bold">{data.id}</span>
+          </div>
+          <Badge 
+            variant="outline" 
+            className={
+              data.status === 'active' ? 'border-destructive text-destructive' :
+              data.status === 'resolved' ? 'border-success text-success' :
+              'border-warning text-warning'
+            }
+          >
+            {/* ترجمة الحالة يدوياً إذا لم تكن في القاموس أو استخدام t */}
+            {data.status === 'active' ? t('active') : data.status === 'resolved' ? (isRTL ? 'محلول' : 'Resolved') : t('pending')}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {data.status !== 'resolved' && (
+            <Button variant="success" onClick={handleResolve}>
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              {isRTL ? 'تحديد كمحلول' : 'Mark Resolved'}
+            </Button>
+          )}
+        </div>
+      </header>
+
+      <main className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          
+          {/* العمود الأيسر - الخريطة والوسائط */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* الخريطة */}
+            <div className="panel h-[300px]">
+              <div className="panel-header">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span className="panel-title">{isRTL ? 'موقع الحادث' : 'Incident Location'}</span>
+                </div>
+              </div>
+              <div className="flex-1 h-[calc(100%-48px)] bg-muted/30 relative tactical-grid overflow-hidden rounded-b-lg">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/20 border-2 border-destructive flex items-center justify-center animate-pulse">
+                      <AlertTriangle className="w-8 h-8 text-destructive" />
+                    </div>
+                    <p className="font-medium text-foreground">{data.location.name}</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {data.location.lat.toFixed(4)}, {data.location.lon.toFixed(4)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* معرض الصور/الفيديو */}
+            {data.media.length > 0 && (
+              <div className="panel">
+                <div className="panel-header">
+                  <span className="panel-title">{t('capturedFrame')}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {currentMediaIndex + 1} / {data.media.length}
+                  </span>
+                </div>
+                <div className="relative aspect-video bg-black overflow-hidden rounded-b-lg">
+                  <img 
+                    src={data.media[currentMediaIndex]} 
+                    alt="Evidence"
+                    className="w-full h-full object-contain"
+                  />
+                  {data.media.length > 1 && (
+                    <>
+                      <Button 
+                        size="icon" 
+                        variant="tactical" 
+                        className="absolute left-2 top-1/2 -translate-y-1/2"
+                        onClick={() => setCurrentMediaIndex(i => i === 0 ? data.media.length - 1 : i - 1)}
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="tactical" 
+                        className="absolute right-2 top-1/2 -translate-y-1/2"
+                        onClick={() => setCurrentMediaIndex(i => (i + 1) % data.media.length)}
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* العمود الأيمن - التفاصيل */}
+          <div className="space-y-4">
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">{isRTL ? 'ملخص الحادث' : 'Incident Summary'}</span>
+              </div>
+              <div className="p-4 space-y-6">
+                {/* الموقع */}
+                <div>
+                  <span className="data-label">{t('map')}</span>
+                  <p className="text-sm font-medium mt-1">{data.location.name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {data.location.lat.toFixed(4)}, {data.location.lon.toFixed(4)}
+                  </p>
+                </div>
+
+                {/* الوقت */}
+                <div>
+                  <span className="data-label">{isRTL ? 'وقت البدء' : 'Start Time'}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">{format(new Date(data.startTime), 'PPpp')}</span>
+                  </div>
+                </div>
+
+                {/* نسبة الثقة */}
+                <div>
+                  <span className="data-label">{t('detectionConfidence')}</span>
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">{isRTL ? 'ثقة الذكاء الاصطناعي' : 'AI Confidence'}</span>
+                      <span className="font-bold text-primary">
+                        {typeof data.confidence === 'number' && data.confidence <= 1 
+                          ? Math.round(data.confidence * 100) 
+                          : data.confidence}%
+                      </span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-primary to-alert-high transition-all"
+                        style={{ width: `${typeof data.confidence === 'number' && data.confidence <= 1 ? data.confidence * 100 : data.confidence}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* تم الإبلاغ بواسطة */}
+                <div>
+                  <span className="data-label">{isRTL ? 'تم الإبلاغ بواسطة' : 'Reported By'}</span>
+                  <p className="text-sm mt-1 font-medium text-foreground">{data.createdBy}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* إجراءات سريعة */}
+            <div className="panel p-4 space-y-2">
+              <Button variant="ghost" className="w-full text-muted-foreground hover:text-destructive justify-start" onClick={() => toast.info('Flagged')}>
+                <Flag className="w-4 h-4 mr-2" />
+                {t('reportFalsePositive')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default IncidentDetail;

@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     // Header
-    appName: 'Hisn',
+    appName: 'Husn',
     appSubtitle: 'Monitoring System v2.0',
     systemOnline: 'System Online',
     myAccount: 'My Account',

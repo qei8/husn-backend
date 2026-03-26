@@ -44,7 +44,8 @@ export async function loginUser(userId: string, password: string) {
 
 // 4. الدالة المعدلة - تغيير الباسوورد (المسار الجديد المتوقع)
 export const changePassword = async (userId: string, currentPass: string, newPass: string) => {
-  const response = await fetch(`http://13.63.154.193:8080/api/auth/change-password`, {
+  // استخدمي رابط الـ CloudFront الجديد والآمن
+  const response = await fetch(`https://duwcseegvhq1t.cloudfront.net/api/auth/change-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 

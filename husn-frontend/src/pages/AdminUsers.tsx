@@ -78,7 +78,8 @@ const AdminUsers = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch("http://13.63.154.193:8080/api/users");
+       // انسخي هذا السطر وحطيه بدال القديم
+const res = await fetch("https://duwcseegvhq1t.cloudfront.net/api/users");
         const data = await res.json();
         const formattedUsers = data.map((u: any) => ({
           id: u.userId,

@@ -60,21 +60,27 @@ const Dashboard = () => {
   }
 }, []);
 
- // في Dashboard.tsx
 useEffect(() => {
-  // نكلم الـ IP المباشر ببروتوكول ws (بدون S)
+  // نستخدم رابط CloudFront مع إجبار استخدام بروتوكول Websocket
   const socket = io("https://duwcseegvhq1t.cloudfront.net", {
-  path: "/socket.io"
-});
+    path: "/socket.io",
+    transports: ["websocket"], // 👈 ضروري جداً عشان يتخطى الـ Polling اللي يعطي 404
+    secure: true
+  });
 
   socket.on("connect", () => {
-    console.log("✅ Socket Connected Directly via IP");
+    console.log("✅ Socket Connected via CloudFront");
     toast.success(language === 'ar' ? "متصل بالدرون" : "UAV Connected");
+  });
+
+  socket.on("telemetry-update", (data: Partial<UAVTelemetry>) => {
+    console.log("📡 Telemetry Data:", data);
+    setTelemetry((prev) => ({ ...prev, ...data, timestamp: new Date().toISOString() }));
   });
 
   socket.on("connect_error", (err) => {
     console.error("❌ Socket Error:", err.message);
-    // لو فشل، جربي تفتحين الـ Insecure content في المتصفح زي ما سوينا للفيديو
+    // إذا استمر الـ 404، فالمشكلة في الـ Behavior حق أمازون
   });
 
   return () => { socket.disconnect(); };

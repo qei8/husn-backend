@@ -106,7 +106,7 @@ const AdminUsers = () => {
     try {
       // تعديل الرابط ليتوافق مع app.delete('/api/users/:id') في الباكيند
       const response = await fetch(`https://duwcseegvhq1t.cloudfront.net/api/users?userId=${id}`, {
-  method: 'DELETE',
+      method: 'DELETE',
 });
       if (response.ok) {
         setUsers(prevUsers => prevUsers.filter(u => u.id !== id));

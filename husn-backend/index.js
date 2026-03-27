@@ -189,7 +189,7 @@ app.patch("/api/users/:id/status", async (req, res) => {
     res.status(500).json({ error: "فشل تحديث الحالة" });
   }
 });
-// في الباكيند index.js
+// الحذف
 app.delete('/api/users', async (req, res) => {
   const id = req.query.userId; // نأخذ الـ ID من بعد علامة الاستفهام ?userId=
   

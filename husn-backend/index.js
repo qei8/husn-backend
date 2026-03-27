@@ -191,10 +191,8 @@ app.patch("/api/users/:id/status", async (req, res) => {
 });
 // في الباكيند index.js
 app.delete('/api/users', async (req, res) => {
-  const id = req.query.userId; // نأخذ الـ ID من الكويري باراميتر
+  const id = req.query.userId; // نأخذ الـ ID من بعد علامة الاستفهام ?userId=
   
-  console.log("🗑️ Deleting user:", id);
-
   if (!id) return res.status(400).json({ error: "userId is required" });
 
   try {
@@ -204,6 +202,7 @@ app.delete('/api/users', async (req, res) => {
     }));
     res.status(200).json({ message: "تم الحذف بنجاح" });
   } catch (error) {
+    console.error("Delete Error:", error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -107,11 +107,7 @@ const AdminUsers = () => {
       // تعديل الرابط ليتوافق مع app.delete('/api/users/:id') في الباكيند
       const response = await fetch(`https://duwcseegvhq1t.cloudfront.net/api/users?userId=${id}`, {
   method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
+});
       if (response.ok) {
         setUsers(prevUsers => prevUsers.filter(u => u.id !== id));
         toast.success(language === 'ar' ? 'تم حذف الموظف بنجاح' : 'User deleted successfully');

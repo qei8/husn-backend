@@ -14,17 +14,17 @@ const config = {
     allow_origin: '*',
     mediaroot: './media'
   },
-  trans: {
-    ffmpeg: 'D:/ffmpeg-8.0.1-essentials_build/ffmpeg-8.0.1-essentials_build/bin/ffmpeg.exe', 
-    tasks: [
-      {
-        app: 'live',
-        hls: true,
-        hlsFlags: '[hls_time=1:hls_list_size=3:flags=delete_segments]',
-        dash: true
-      }
-    ]
-  }
+trans: {
+  ffmpeg: '/usr/bin/ffmpeg', 
+  tasks: [
+    {
+      app: 'live',
+      hls: true,
+      hlsFlags: '[hls_time=1:hls_list_size=3:flags=delete_segments]',
+      dash: true
+    }
+  ]
+}
 };
 
 var nms = new NodeMediaServer(config);

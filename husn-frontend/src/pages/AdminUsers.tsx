@@ -104,19 +104,22 @@ const AdminUsers = () => {
   
   if (window.confirm(confirmMsg)) {
     try {
-const response = await fetch(`https://duwcseegvhq1t.cloudfront.net/api/users?userId=${id}`, {
-  method: 'DELETE',
-});
+      // نستخدم URLSearchParams للتأكد من تشفير الرابط بشكل صحيح
+      const params = new URLSearchParams({ userId: id });
+      const response = await fetch(`https://duwcseegvhq1t.cloudfront.net/api/users?${params.toString()}`, {
+        method: 'DELETE',
+      });
+
       if (response.ok) {
         setUsers(prevUsers => prevUsers.filter(u => u.id !== id));
         toast.success(language === 'ar' ? 'تم حذف الموظف بنجاح' : 'User deleted successfully');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Server responded with error:", response.status, errorData);
-        toast.error(language === 'ar' ? 'فشل الحذف من السيرفر' : 'Delete failed: Server error');
+        console.error("Server Error:", response.status, errorData);
+        toast.error(language === 'ar' ? 'الموظف غير موجود أو فشل الحذف' : 'User not found or delete failed');
       }
     } catch (error) {
-      console.error("Delete Connection Error:", error);
+      console.error("Connection Error:", error);
       toast.error(language === 'ar' ? 'خطأ في الاتصال بالسيرفر' : 'Connection error');
     }
   }

@@ -190,21 +190,24 @@ app.patch("/api/users/:id/status", async (req, res) => {
 });
 
 // كود حذف المستخدم من الباكيند (Node.js + DynamoDB)
+// كود الحذف بعد مطابقته مع صورة AWS DynamoDB
 app.delete('/api/users/:id', async (req, res) => {
   const { id } = req.params;
-  try {
-    const params = {
-      TableName: "Users", // تأكدي إن هذا نفس اسم جدول اليوزرز عندك في AWS
-      Key: {
-        userId: id
-      }
-    };
+  
+  const params = {
+    TableName: "Users", // التأكد من الحرف الكبير U
+    Key: {
+      userId: id // التأكد من كتابة userId بالضبط كما في الصورة
+    }
+  };
 
+  try {
     await dynamoDb.delete(params).promise();
+    console.log(`User ${id} deleted successfully from DynamoDB`);
     res.status(200).send({ message: "User deleted successfully" });
   } catch (error) {
-    console.error("Delete Error:", error);
-    res.status(500).send({ error: "Could not delete user" });
+    console.error("DynamoDB Delete Error:", error);
+    res.status(500).send({ error: "Server Error: Could not delete user", details: error.message });
   }
 });
 

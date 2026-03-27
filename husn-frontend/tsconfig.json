@@ -1,11 +1,16 @@
 {
+  "extends": "@ljharb/tsconfig",
   "files": [],
-  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
+    "target": "es2022",
     "noImplicitAny": false,
     "noUnusedParameters": false,
     "skipLibCheck": true,

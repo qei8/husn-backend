@@ -77,45 +77,68 @@ const AdminUsers = () => {
 
   // جلب البيانات من السيرفر
   const fetchUsers = async () => {
-    try {
-      const res = await fetch("https://duwcseegvhq1t.cloudfront.net/api/users");
-      const data = await res.json();
-      const formattedUsers = data.map((u: any) => ({
-        id: u.userId, // نستخدم الـ userId كـ id للـ State
-        userId: u.userId, 
-        fullName: u.name,
-        role: u.role,
-        isActive: u.status === "Active",
-        lastLogin: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Never'
-      }));
-      setUsers(formattedUsers);
-    } catch (error) {
-      toast.error(language === 'ar' ? "فشل جلب البيانات" : "Fetch failed");
-    }
-  };
+  try {
+    const res = await fetch(
+      "https://duwcseegvhq1t.cloudfront.net/api/users",
+      { cache: "no-store" } // 🔥 يمنع الكاش القديم ويرجع أحدث بيانات
+    );
+    const data = await res.json();
+    const formattedUsers = data.map((u: any) => ({
+      id: u.userId, 
+      userId: u.userId, 
+      fullName: u.name,
+      role: u.role,
+      isActive: u.status === "Active",
+      lastLogin: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Never'
+    }));
+    setUsers(formattedUsers);
+  } catch (error) {
+    toast.error(language === 'ar' ? "فشل جلب البيانات" : "Fetch failed");
+  }
+};
 
-  useEffect(() => {
-    fetchUsers();
-  }, [language]);
+useEffect(() => {
+  fetchUsers();
+}, [language]);
 
   // دالة الحذف المعدلة لتستخدم userId الصافي
 const handleDeleteUser = async (uId: string) => {
-  if (!window.confirm("متأكد من الحذف؟")) return;
+
+  const confirmMsg = language === 'ar'
+    ? `هل متأكد من حذف ${uId}؟`
+    : `Are you sure you want to delete ${uId}?`;
+
+  if (!window.confirm(confirmMsg)) return;
 
   try {
-    const res = await fetch(
+    const response = await fetch(
       `https://duwcseegvhq1t.cloudfront.net/api/users/${uId}`,
-      { method: "DELETE" }
+      {
+        method: 'DELETE',
+      }
     );
 
-    if (res.ok) {
+    // 🔍 اطبع الرد للتأكد
+    console.log("Response status:", response.status);
+
+    if (response.ok) {
       // 🔥 إعادة تحميل البيانات من السيرفر (أضمن حل سريع)
       fetchUsers();
+
+      toast.success(language === 'ar' ? 'تم الحذف بنجاح' : 'Deleted successfully');
     } else {
-      alert("Delete failed");
+      const errText = await response.text();
+      console.error("Server Error:", errText);
+
+      toast.error(language === 'ar'
+        ? 'فشل الحذف من السيرفر'
+        : 'Delete failed');
     }
-  } catch {
-    alert("Connection error");
+  } catch (error) {
+    console.error("Network error:", error);
+    toast.error(language === 'ar'
+      ? 'خطأ في الاتصال'
+      : 'Connection error');
   }
 };
 

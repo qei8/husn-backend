@@ -60,31 +60,24 @@ const Dashboard = () => {
   }
 }, []);
 
-  // الاتصال بالدرون (تحديث للـ Static IP)
-  useEffect(() => {
-    // استخدمنا الـ IP الثابت الجديد مع بورت السوكيت
-    const socket = io("https://duwcseegvhq1t.cloudfront.net/live/drone.m3u8"); 
-    
-    socket.on("connect", () => {
-      console.log("✅ Connected to UAV Telemetry Server");
-      toast.success(language === 'ar' ? "تم الاتصال ببيانات الدرون" : "UAV Telemetry Connected");
-    });
+ // في Dashboard.tsx
+useEffect(() => {
+  // نستخدم رابط CloudFront مباشرة
+  const socket = io("https://duwcseegvhq1t.cloudfront.net", {
+    path: "/socket.io", // تأكدي إن هذا المسار مسموح به في CloudFront
+    transports: ["websocket"] // أجبري السوكيت يستخدم Websocket بدل الـ Polling
+  });
 
-    socket.on("telemetry-update", (data: Partial<UAVTelemetry>) => {
-      console.log("📡 New Telemetry Received:", data);
-      setTelemetry((prev) => ({ 
-        ...prev, 
-        ...data, 
-        timestamp: new Date().toISOString() 
-      }));
-    });
+  socket.on("connect", () => {
+    toast.success(language === 'ar' ? "متصل ببيانات الدرون" : "Connected to Drone Data");
+  });
 
-    socket.on("connect_error", (err) => {
-      console.error("❌ Socket Connection Error:", err);
-    });
+  socket.on("connect_error", (err) => {
+    console.error("❌ Socket Error:", err.message);
+  });
 
-    return () => { socket.disconnect(); };
-  }, [language]);
+  return () => { socket.disconnect(); };
+}, [language]);
 
   // جلب البلاغات
   useEffect(() => {

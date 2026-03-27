@@ -61,26 +61,19 @@ const Dashboard = () => {
 }, []);
 
 useEffect(() => {
-  // نستخدم رابط CloudFront مع إجبار استخدام بروتوكول Websocket
-  const socket = io("https://duwcseegvhq1t.cloudfront.net", {
-    path: "/socket.io",
-    transports: ["websocket"], // 👈 ضروري جداً عشان يتخطى الـ Polling اللي يعطي 404
-    secure: true
+  // الاتصال المباشر بالـ IP الثابت بورت 8001
+  const socket = io("http://13.62.189.199:8001", {
+    transports: ["websocket"], 
+    upgrade: false
   });
 
   socket.on("connect", () => {
-    console.log("✅ Socket Connected via CloudFront");
-    toast.success(language === 'ar' ? "متصل بالدرون" : "UAV Connected");
-  });
-
-  socket.on("telemetry-update", (data: Partial<UAVTelemetry>) => {
-    console.log("📡 Telemetry Data:", data);
-    setTelemetry((prev) => ({ ...prev, ...data, timestamp: new Date().toISOString() }));
+    console.log("✅ HUSN Telemetry: Connected Directly via IP");
+    toast.success(language === 'ar' ? "تم الاتصال بالدرون" : "Drone Telemetry Connected");
   });
 
   socket.on("connect_error", (err) => {
     console.error("❌ Socket Error:", err.message);
-    // إذا استمر الـ 404، فالمشكلة في الـ Behavior حق أمازون
   });
 
   return () => { socket.disconnect(); };

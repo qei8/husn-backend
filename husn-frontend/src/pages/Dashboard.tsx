@@ -61,10 +61,9 @@ const Dashboard = () => {
 }, []);
 
 useEffect(() => {
-  // الحين نكلم الـ CloudFront مباشرة وهو HTTPS
   const socket = io("https://duwcseegvhq1t.cloudfront.net", {
     path: "/socket.io",
-    transports: ["websocket"], // ضروري عشان الـ AllViewer Policy تمررها
+    transports: ["websocket"],
     secure: true,
     reconnection: true
   });
@@ -72,6 +71,33 @@ useEffect(() => {
   socket.on("connect", () => {
     console.log("✅ Socket Connected via CloudFront Proxy");
     toast.success(language === 'ar' ? "متصل بالدرون آمن" : "UAV Securely Connected");
+  });
+
+  // 🚀 الحركة الفتاكة: استقبال بلاغ الحريق فوراً من YOLO
+  socket.on("new-incident", (incident: any) => {
+    console.log("🔥 HUSN Alert Received:", incident);
+    
+    // تحويل البيانات لتناسب تنسيق الـ Alert في الفرونت
+    const newAlert: Alert = {
+      id: incident.incidentId,
+      timestamp: incident.detectionTime,
+      confidence: Number(incident.confidence ?? 0),
+      severity: Number(incident.confidence ?? 0) >= 95 ? 'critical' : 'high',
+      status: 'active',
+      location: {
+        lat: Number(incident.lat ?? 0),
+        lon: Number(incident.lng ?? 0),
+        name: `Lat ${incident.lat}, Lon ${incident.lng}`
+      },
+      thumbnail: incident.s3Key ? `https://husn-fire-images.s3.eu-north-1.amazonaws.com/${incident.s3Key}` : undefined,
+    };
+
+    // إضافة البلاغ في أول القائمة فوراً
+    setAlerts(prev => [newAlert, ...prev]);
+    
+    // إظهار تنبيه منبثق للمستخدم
+    setCenteredAlert(newAlert);
+    toast.error(language === 'ar' ? "⚠️ تم رصد حريق جديد!" : "⚠️ New Fire Detected!");
   });
 
   socket.on("connect_error", (err) => {

@@ -42,6 +42,10 @@ const INCIDENTS_TABLE = process.env.DDB_INCIDENTS_TABLE;
 const USERS_TABLE = process.env.DDB_USERS_TABLE;
 const MODEL_API_URL = process.env.MODEL_API_URL;
 
+const express = require('express');
+const multer = require('multer'); // لازم تثبتينه: npm install multer
+
+
 console.log("🚀 BOOTING HUSN SYSTEM...", {
   REGION: process.env.AWS_REGION,
   BUCKET: BUCKET,
@@ -231,16 +235,12 @@ app.post("/api/drone/frame", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "file is required" });
 
+    // 1. استلام البيانات من الموديل (detector.py)
     const lat = req.body.lat ? Number(req.body.lat) : 21.5;
     const lng = req.body.lng ? Number(req.body.lng) : 39.2;
     const uavId = req.body.uavId || "UAV-01";
 
-    const modelResult = await analyzeImageWithModel(req.file.buffer, req.file.originalname, req.file.mimetype);
-
-    if (!modelResult.detected) {
-      return res.json({ detected: false, modelResult });
-    }
-
+    // 2. رفع الصورة لـ S3 (عشان تظهر في الموقع للأبد)
     const key = `uploads/${Date.now()}-${req.file.originalname}`;
     await s3.send(new PutObjectCommand({
       Bucket: BUCKET,
@@ -249,6 +249,7 @@ app.post("/api/drone/frame", upload.single("file"), async (req, res) => {
       Body: req.file.buffer,
     }));
 
+    // 3. تجهيز بيانات البلاغ
     const incidentId = `INC-${uuidv4()}`;
     const item = {
       incidentId,
@@ -256,15 +257,24 @@ app.post("/api/drone/frame", upload.single("file"), async (req, res) => {
       detectionTime: new Date().toISOString(),
       s3Key: key,
       status: "Active",
-      confidence: modelResult.confidence || 0,
+      confidence: 0.9, // الموديل لقطها خلاص
       lat, lng, uavId,
-      label: modelResult.label || "fire"
+      label: "fire"
     };
 
+    // 4. حفظ في DynamoDB
     await ddb.send(new PutCommand({ TableName: INCIDENTS_TABLE, Item: item }));
+
+    // 🚀 5. الحركة الفتاكة: إرسال البلاغ فوراً للموقع (Socket.io)
+    // تأكدي إن اسم المتغير عندك io
+    if (typeof io !== 'undefined') {
+        io.emit("new-incident", item); 
+        console.log("🔥 HUSN: Alert broadcasted via Socket.io");
+    }
+
     res.status(201).json({ detected: true, incident: item });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error in /api/drone/frame:", error);
     res.status(500).json({ error: "Internal error" });
   }
 });

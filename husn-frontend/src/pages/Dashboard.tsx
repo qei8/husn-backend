@@ -61,15 +61,17 @@ const Dashboard = () => {
 }, []);
 
 useEffect(() => {
-  // الاتصال المباشر بالـ IP الثابت بورت 8001
-  const socket = io("http://13.62.189.199:8001", {
-    transports: ["websocket"], 
-    upgrade: false
+  // الحين نكلم الـ CloudFront مباشرة وهو HTTPS
+  const socket = io("https://duwcseegvhq1t.cloudfront.net", {
+    path: "/socket.io",
+    transports: ["websocket"], // ضروري عشان الـ AllViewer Policy تمررها
+    secure: true,
+    reconnection: true
   });
 
   socket.on("connect", () => {
-    console.log("✅ HUSN Telemetry: Connected Directly via IP");
-    toast.success(language === 'ar' ? "تم الاتصال بالدرون" : "Drone Telemetry Connected");
+    console.log("✅ Socket Connected via CloudFront Proxy");
+    toast.success(language === 'ar' ? "متصل بالدرون آمن" : "UAV Securely Connected");
   });
 
   socket.on("connect_error", (err) => {

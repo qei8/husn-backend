@@ -63,7 +63,7 @@ const Dashboard = () => {
   // الاتصال بالدرون (تحديث للـ Static IP)
   useEffect(() => {
     // استخدمنا الـ IP الثابت الجديد مع بورت السوكيت
-    const socket = io("http://13.62.189.199:8001"); 
+    const socket = io("https://duwcseegvhq1t.cloudfront.net/live/drone.m3u8"); 
     
     socket.on("connect", () => {
       console.log("✅ Connected to UAV Telemetry Server");

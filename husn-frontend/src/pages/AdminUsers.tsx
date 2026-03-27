@@ -99,25 +99,56 @@ const AdminUsers = () => {
   }, [language]);
 
   // دالة الحذف المعدلة لتستخدم userId الصافي
- const handleDeleteUser = async (uId: string, fullName: string) => {
-  const confirmMsg = language === 'ar' ? `حذف ${fullName}؟` : `Delete ${fullName}?`;
+const handleDeleteUser = async (uId: string, fullName: string) => {
+  // 🔥 تنظيف الـ ID بشكل آمن
+  const cleanId = String(uId || "").trim().toUpperCase();
+
+  console.log("Deleting user:", cleanId);
+
+  // ❗ تحقق من صحة الـ ID
+  if (!cleanId) {
+    toast.error("Invalid user ID");
+    return;
+  }
+
+  // ❗ تأكيد الحذف (استخدم متغيرك بدل تكرار النص)
+  const confirmMsg = language === 'ar'
+    ? `هل متأكد من حذف ${fullName}؟`
+    : `Are you sure you want to delete ${fullName}?`;
+
   if (!window.confirm(confirmMsg)) return;
 
   try {
-    // الرابط صار مباشر ونظيف: /api/users/E004
-    const response = await fetch(`https://duwcseegvhq1t.cloudfront.net/api/users/${uId}`, {
-      method: 'DELETE',
-    });
+    const response = await fetch(
+      `https://duwcseegvhq1t.cloudfront.net/api/users/${cleanId}`,
+      {
+        method: 'DELETE',
+      }
+    );
+
+    // 🔍 اطبع الرد للتأكد
+    console.log("Response status:", response.status);
 
     if (response.ok) {
-      setUsers(prevUsers => prevUsers.filter(u => u.userId !== uId));
-      toast.success(language === 'ar' ? 'تم الحذف' : 'Deleted');
+      // 🔥 تحديث الحالة بشكل أدق
+      setUsers(prev =>
+        prev.filter(u => u.userId.trim().toUpperCase() !== cleanId)
+      );
+
+      toast.success(language === 'ar' ? 'تم الحذف بنجاح' : 'Deleted successfully');
     } else {
-      console.error("Server Error Response:", response.status);
-      toast.error(language === 'ar' ? 'فشل الحذف من السيرفر' : 'Delete failed');
+      const errText = await response.text();
+      console.error("Server Error:", errText);
+
+      toast.error(language === 'ar'
+        ? 'فشل الحذف من السيرفر'
+        : 'Delete failed');
     }
   } catch (error) {
-    toast.error('Connection error');
+    console.error("Network error:", error);
+    toast.error(language === 'ar'
+      ? 'خطأ في الاتصال'
+      : 'Connection error');
   }
 };
 
@@ -285,7 +316,10 @@ const AdminUsers = () => {
                         size="icon" 
                         variant="ghost" 
                         className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
-                        onClick={() => handleDeleteUser(user.userId, user.fullName)}
+                       onClick={() => {
+                        console.log(user); // 👈 شوف البيانات كاملة
+                       handleDeleteUser(user.userId.trim(), user.fullName);
+                  }}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

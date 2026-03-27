@@ -99,56 +99,23 @@ const AdminUsers = () => {
   }, [language]);
 
   // دالة الحذف المعدلة لتستخدم userId الصافي
-const handleDeleteUser = async (uId: string, fullName: string) => {
-  // 🔥 تنظيف الـ ID بشكل آمن
-  const cleanId = String(uId || "").trim().toUpperCase();
-
-  console.log("Deleting user:", cleanId);
-
-  // ❗ تحقق من صحة الـ ID
-  if (!cleanId) {
-    toast.error("Invalid user ID");
-    return;
-  }
-
-  // ❗ تأكيد الحذف (استخدم متغيرك بدل تكرار النص)
-  const confirmMsg = language === 'ar'
-    ? `هل متأكد من حذف ${fullName}؟`
-    : `Are you sure you want to delete ${fullName}?`;
-
-  if (!window.confirm(confirmMsg)) return;
+const handleDeleteUser = async (uId: string) => {
+  if (!window.confirm("متأكد من الحذف؟")) return;
 
   try {
-    const response = await fetch(
-      `https://duwcseegvhq1t.cloudfront.net/api/users/${cleanId}`,
-      {
-        method: 'DELETE',
-      }
+    const res = await fetch(
+      `https://duwcseegvhq1t.cloudfront.net/api/users/${uId}`,
+      { method: "DELETE" }
     );
 
-    // 🔍 اطبع الرد للتأكد
-    console.log("Response status:", response.status);
-
-    if (response.ok) {
-      // 🔥 تحديث الحالة بشكل أدق
-      setUsers(prev =>
-        prev.filter(u => u.userId.trim().toUpperCase() !== cleanId)
-      );
-
-      toast.success(language === 'ar' ? 'تم الحذف بنجاح' : 'Deleted successfully');
+    if (res.ok) {
+      // 🔥 إعادة تحميل البيانات من السيرفر (أضمن حل سريع)
+      fetchUsers();
     } else {
-      const errText = await response.text();
-      console.error("Server Error:", errText);
-
-      toast.error(language === 'ar'
-        ? 'فشل الحذف من السيرفر'
-        : 'Delete failed');
+      alert("Delete failed");
     }
-  } catch (error) {
-    console.error("Network error:", error);
-    toast.error(language === 'ar'
-      ? 'خطأ في الاتصال'
-      : 'Connection error');
+  } catch {
+    alert("Connection error");
   }
 };
 
@@ -316,10 +283,7 @@ const handleDeleteUser = async (uId: string, fullName: string) => {
                         size="icon" 
                         variant="ghost" 
                         className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
-                       onClick={() => {
-                        console.log(user); // 👈 شوف البيانات كاملة
-                       handleDeleteUser(user.userId.trim(), user.fullName);
-                  }}
+                       onClick={() => handleDeleteUser(user.userId)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

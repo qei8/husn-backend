@@ -15,16 +15,20 @@ const config = {
     allow_origin: '*',
     mediaroot: '/home/ubuntu/husn-backend/media'
   },
-  trans: {
-    ffmpeg: '/usr/bin/ffmpeg', 
+trans: {
+    ffmpeg: '/usr/bin/ffmpeg',
     tasks: [
       {
         app: 'live',
         hls: true,
         hlsFlags: '[hls_time=2:hls_list_size=3:flags=delete_segments]',
-        hlsPath: '/home/ubuntu/husn-backend/media/live', 
+        hlsPath: '/home/ubuntu/husn-backend/media/live',
         dash: true,
-        dashFlags: '[f=dash:window_size=3:extra_window_size=5]'
+        vc: 'libx264', 
+        ac: 'aac',
+       
+        mp4: true,
+        mp4Path: '/home/ubuntu/husn-backend/media/mp4' 
       }
     ]
   }

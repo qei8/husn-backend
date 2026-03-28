@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import NodeMediaServer from 'node-media-server';
 import { Server } from 'socket.io';
+import path from 'path';
 
 const config = {
   rtmp: {
@@ -10,17 +11,19 @@ const config = {
     ping: 30,
     ping_timeout: 60
   },
- http: {
+  http: {
     port: 8000,
     allow_origin: '*',
-    mediaroot: '/home/ubuntu/husn-backend/media' 
+    // ✅ التعديل الصحيح: خليه يقرأ من مجلد husn-backend مباشرة
+    mediaroot: '/home/ubuntu/husn-backend' 
   },
-trans: {
+  trans: {
     ffmpeg: '/usr/bin/ffmpeg',
     tasks: [
       {
         app: 'live',
         hls: true,
+        // ✅ تأكدي إن المسار هنا يطابق المجلد اللي أنشأناه
         hlsPath: '/home/ubuntu/husn-backend/media/live',
         hlsFlags: '[hls_time=2:hls_list_size=3:flags=delete_segments]'
       }
@@ -28,9 +31,9 @@ trans: {
   }
 };
 
+// تشغيل السيرفر
 var nms = new NodeMediaServer(config);
 nms.run();
-
 
 // تشغيل السوكيت على بورت 8001
 const io = new Server(8001, {
@@ -38,18 +41,11 @@ const io = new Server(8001, {
 });
 
 console.log("HUSN Stream Server is LIVE! 🚀");
-console.log("Telemetry Socket: ws://10.215.37.109:8001");
 
-// الاستماع لبيانات الدرون الحقيقية فقط
 nms.on('postPublish', (id, StreamPath, args) => {
   console.log('Drone Connected. Path:', StreamPath);
-  
-  // نرسل البيانات فقط إذا كانت قادمة من الدرون فعلاً
   if (args && Object.keys(args).length > 0) {
-    console.log('Real Telemetry detected:', args);
     io.emit('telemetry-update', args);
-  } else {
-    console.log('No metadata received from drone yet.');
   }
 });
 

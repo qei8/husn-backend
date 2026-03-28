@@ -13,7 +13,7 @@ const config = {
   http: {
     port: parseInt(process.env.HTTP_PORT) || 8000,
     allow_origin: '*',
-    mediaroot: './media'
+    mediaroot: '/home/ubuntu/husn-backend/media'
   },
   trans: {
     ffmpeg: '/usr/bin/ffmpeg', 
@@ -22,7 +22,7 @@ const config = {
         app: 'live',
         hls: true,
         hlsFlags: '[hls_time=2:hls_list_size=3:flags=delete_segments]',
-        hlsPath: '/home/ubuntu/husn-backend/media/live', // 👈 هذا هو التعديل السحري!
+        hlsPath: '/home/ubuntu/husn-backend/media/live', 
         dash: true,
         dashFlags: '[f=dash:window_size=3:extra_window_size=5]'
       }

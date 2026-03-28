@@ -21,14 +21,8 @@ trans: {
       {
         app: 'live',
         hls: true,
-        hlsFlags: '[hls_time=2:hls_list_size=3:flags=delete_segments]',
         hlsPath: '/home/ubuntu/husn-backend/media/live',
-        dash: true,
-        vc: 'libx264', 
-        ac: 'aac',
-       
-        mp4: true,
-        mp4Path: '/home/ubuntu/husn-backend/media/mp4' 
+        hlsFlags: '[hls_time=2:hls_list_size=3:flags=delete_segments]'
       }
     ]
   }

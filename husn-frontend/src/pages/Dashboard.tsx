@@ -59,12 +59,10 @@ const Dashboard = () => {
     });
   }
 }, []);
-
 useEffect(() => {
-  const socket = io("https://duwcseegvhq1t.cloudfront.net", {
-    path: "/socket.io",
+  // غيري الرابط للأي بي حق سيرفرك وبورت السوكت (8080 أو 8001 حسب اللي شغال)
+  const socket = io("http://13.62.189.199:8080", { 
     transports: ["websocket"],
-    secure: true,
     reconnection: true
   });
 

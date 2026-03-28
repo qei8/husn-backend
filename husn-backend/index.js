@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-
+import path from 'path';
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -40,7 +40,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
+app.use('/live', express.static('/home/ubuntu/husn-backend/media/live'));
 app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });

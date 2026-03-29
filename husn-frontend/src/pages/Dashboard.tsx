@@ -61,10 +61,9 @@ const Dashboard = () => {
 }, []);
 useEffect(() => {
   // غيري الرابط للأي بي حق سيرفرك وبورت السوكت (8080 أو 8001 حسب اللي شغال)
-  const socket = io("https://husn-project.online", { 
-    transports: ["websocket"],
-    reconnection: true
-  });
+  const socket = io("https://husn-project.online", {
+  path: "/socket.io"
+});
 
   socket.on("connect", () => {
     console.log("✅ Socket Connected directly to HUSN Server");
